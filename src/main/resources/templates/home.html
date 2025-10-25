@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>AgroRent - Inicio</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+<header>
+  <h1>AgroRent</h1>
+  <nav>
+    <a th:href="@{/}">Inicio</a>
+    <a th:href="@{/machinery}">Buscar Maquinaria</a>
+    <a th:href="@{/login}">Ingresar</a>
+    <a th:href="@{/register}">Registrarse</a>
+  </nav>
+</header>
+<main>
+  <section class="news-section">
+    <h2>Noticias y Eventos Agrícolas</h2>
+    <div class="news-grid">
+      <div class="news-item">
+        <h3>Feria Agrícola Regional</h3>
+        <p><strong>Fecha:</strong> 15-17 de Noviembre, 2025</p>
+        <p><strong>Ubicación:</strong> Parque O'Higgins, Santiago</p>
+        <p>Exposición de maquinaria agrícola, semillas y tecnología agrícola.</p>
+      </div>
+      <div class="news-item">
+        <h3>Calendario de Cosechas - Primavera</h3>
+        <p><strong>Trigo:</strong> Octubre - Noviembre</p>
+        <p><strong>Maíz:</strong> Marzo - Abril</p>
+        <p><strong>Papas:</strong> Enero - Febrero</p>
+      </div>
+      <div class="news-item">
+        <h3>Programas Gubernamentales</h3>
+        <p><strong>INDAP:</strong> Apoyo a pequeños agricultores</p>
+        <p><strong>SAG:</strong> Certificaciones fitosanitarias</p>
+        <p><strong>CORFO:</strong> Innovación agrícola</p>
+      </div>
+    </div>
+  </section>
+  
+  <section class="featured-section">
+    <h2>Maquinaria Destacada</h2>
+    <div class="machinery-grid">
+      <div class="machinery-card">
+        <h3>Tractor John Deere T-100</h3>
+        <p><strong>Ubicación:</strong> Rancagua</p>
+        <p><strong>Precio:</strong> $55.000/día</p>
+        <p><strong>Capacidad:</strong> 120 HP</p>
+        <a th:href="@{/machinery/1}" class="btn-primary">Ver Detalles</a>
+      </div>
+      <div class="machinery-card">
+        <h3>Cosechadora New Holland CX6</h3>
+        <p><strong>Ubicación:</strong> Talca</p>
+        <p><strong>Precio:</strong> $120.000/día</p>
+        <p><strong>Capacidad:</strong> 300 HP</p>
+        <a th:href="@{/machinery/2}" class="btn-primary">Ver Detalles</a>
+      </div>
+    </div>
+  </section>
+  
+  <section class="search-section">
+    <h2>Buscar Maquinaria</h2>
+    <form th:action="@{/machinery/search}" method="get" class="search-form">
+      <div class="form-group">
+        <label for="type">Tipo de Maquinaria:</label>
+        <select id="type" name="type">
+          <option value="">Todos los tipos</option>
+          <option value="Tractor">Tractor</option>
+          <option value="Cosechadora">Cosechadora</option>
+          <option value="Sembradora">Sembradora</option>
+          <option value="Pulverizadora">Pulverizadora</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="location">Ubicación:</label>
+        <input type="text" id="location" name="location" placeholder="Ej: Santiago, Rancagua">
+      </div>
+      <div class="form-group">
+        <label for="minPrice">Precio mínimo:</label>
+        <input type="number" id="minPrice" name="minPrice" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label for="maxPrice">Precio máximo:</label>
+        <input type="number" id="maxPrice" name="maxPrice" placeholder="200000">
+      </div>
+      <button type="submit" class="btn-primary">Buscar</button>
+    </form>
+  </section>
+</main>
+<footer>© 2025 AgroRent</footer>
+</body>
+</html>

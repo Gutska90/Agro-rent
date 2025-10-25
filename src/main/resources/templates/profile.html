@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Perfil - AgroRent</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+<header>
+  <h1>AgroRent</h1>
+  <nav>
+    <a th:href="@{/dashboard}">Dashboard</a>
+    <a th:href="@{/profile}">Mi Perfil</a>
+    <a th:href="@{/machinery/new}">Publicar Maquinaria</a>
+    <a th:href="@{/logout}">Cerrar Sesión</a>
+  </nav>
+</header>
+
+<main>
+  <section class="profile-section">
+    <h2>Mi Perfil</h2>
+    
+    <div th:if="${param.ok}" class="success-message">
+      <p>✓ Perfil actualizado correctamente</p>
+    </div>
+    
+    <form method="post" th:object="${user}" class="profile-form">
+      <div class="profile-info">
+        <h3>Información Personal</h3>
+        <div class="form-group">
+          <label><strong>Nombre:</strong></label>
+          <span th:text="${user.name}" class="readonly-field"></span>
+        </div>
+        <div class="form-group">
+          <label><strong>Email:</strong></label>
+          <span th:text="${user.email}" class="readonly-field"></span>
+        </div>
+      </div>
+      
+      <div class="profile-details">
+        <h3>Información de Contacto y Cultivos</h3>
+        <div class="form-group">
+          <label for="address">Dirección:</label>
+          <input type="text" id="address" th:field="*{address}" placeholder="Ingresa tu dirección completa">
+        </div>
+        <div class="form-group">
+          <label for="phone">Teléfono:</label>
+          <input type="text" id="phone" th:field="*{phone}" placeholder="Ej: +56 9 1234 5678">
+        </div>
+        <div class="form-group">
+          <label for="crops">Cultivos:</label>
+          <input type="text" id="crops" th:field="*{crops}" placeholder="Ej: Trigo, Maíz, Papas">
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Guardar Cambios</button>
+        <a th:href="@{/dashboard}" class="btn-secondary">Volver al Dashboard</a>
+      </div>
+    </form>
+  </section>
+</main>
+
+<footer>© 2025 AgroRent</footer>
+</body>
+</html>
