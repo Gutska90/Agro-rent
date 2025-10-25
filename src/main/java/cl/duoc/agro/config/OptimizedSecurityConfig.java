@@ -1,6 +1,6 @@
 package cl.duoc.agro.config;
 
-import cl.duoc.agro.service.SimpleUserDetailsService;
+import cl.duoc.agro.service.OptimizedUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -10,45 +10,51 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-public class SimpleSecurityConfig {
+public class OptimizedSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+        return http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 // Páginas públicas
                 .requestMatchers("/", "/recetas", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/machinery/search", "/machinery").permitAll()
+                .requestMatchers("/machinery/search", "/machinery", "/machinery/*").permitAll()
                 // Páginas privadas
                 .requestMatchers("/dashboard", "/profile", "/machinery/new", "/machinery/*/edit", "/machinery/*/reserve").authenticated()
-                .requestMatchers("/machinery/*").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(login -> login
                 .loginPage("/login")
                 .defaultSuccessUrl("/dashboard", true)
+                .failureUrl("/login?error=true")
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
+                .logoutSuccessUrl("/?logout=true")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
                 .permitAll()
-            );
-        return http.build();
+            )
+            .build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Usar NoOpPasswordEncoder para contraseñas en texto plano (solo para desarrollo)
+        // NoOpPasswordEncoder para desarrollo - NO usar en producción
         return NoOpPasswordEncoder.getInstance();
     }
 
     @Bean
-    public DaoAuthenticationProvider authProvider(SimpleUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    public DaoAuthenticationProvider authProvider(
+            OptimizedUserDetailsService userDetailsService, 
+            PasswordEncoder passwordEncoder) {
+        
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
+        provider.setHideUserNotFoundExceptions(false); // Para mejor debugging
         return provider;
     }
 }
