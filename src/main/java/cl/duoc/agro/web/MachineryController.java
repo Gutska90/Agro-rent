@@ -60,10 +60,32 @@ public class MachineryController {
     }
 
     @PostMapping("/new")
-    public String create(@ModelAttribute Machinery machinery, @AuthenticationPrincipal UserDetails ud) {
-        User owner = userRepository.findByEmail(ud.getUsername()).orElseThrow();
-        machinery.setOwner(owner);
-        machineryRepository.save(machinery);
-        return "redirect:/machinery";
+    public String create(@ModelAttribute Machinery machinery, @AuthenticationPrincipal UserDetails ud, Model model) {
+        try {
+            User owner = userRepository.findByEmail(ud.getUsername()).orElseThrow();
+            machinery.setOwner(owner);
+            
+            // Validaciones básicas
+            if (machinery.getType() == null || machinery.getType().trim().isEmpty()) {
+                model.addAttribute("error", "El tipo de maquinaria es requerido");
+                return "machinery-form";
+            }
+            
+            if (machinery.getBrand() == null || machinery.getBrand().trim().isEmpty()) {
+                model.addAttribute("error", "La marca es requerida");
+                return "machinery-form";
+            }
+            
+            if (machinery.getPricePerDay() == null || machinery.getPricePerDay() <= 0) {
+                model.addAttribute("error", "El precio por día debe ser mayor a 0");
+                return "machinery-form";
+            }
+            
+            machineryRepository.save(machinery);
+            return "redirect:/machinery?success";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error al guardar la maquinaria: " + e.getMessage());
+            return "machinery-form";
+        }
     }
 }

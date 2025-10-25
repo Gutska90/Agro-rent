@@ -21,6 +21,10 @@
     <h2>Publicar Nueva Maquinaria</h2>
     <p class="form-description">Completa la información de tu maquinaria agrícola para ofrecerla en arriendo.</p>
     
+    <div th:if="${error}" class="error-message">
+      <p th:text="${error}"></p>
+    </div>
+    
     <form th:action="@{/machinery/new}" method="post" th:object="${machinery}" class="machinery-form">
       <div class="form-section-header">
         <h3>Información Básica</h3>
