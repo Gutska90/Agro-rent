@@ -3,9 +3,9 @@ INSERT INTO ROLE(name) VALUES ('ROLE_ADMIN');
 
 -- 3 usuarios (password: 123456)
 INSERT INTO USERS(id, name, email, password, address, phone, crops) VALUES
- (1,'Admin','admin@agro.cl','$2a$10$Hf1W9o1xESe7r8k1oQ9yEu8xqFqX2cN0F3h1z1wM0QWm3Q6eL3RIm','Santiago','+56 9 1111 1111','Trigo'),
- (2,'Juan Perez','juan@agro.cl','$2a$10$Hf1W9o1xESe7r8k1oQ9yEu8xqFqX2cN0F3h1z1wM0QWm3Q6eL3RIm','Rancagua','+56 9 2222 2222','Maíz'),
- (3,'Maria Lopez','maria@agro.cl','$2a$10$Hf1W9o1xESe7r8k1oQ9yEu8xqFqX2cN0F3h1z1wM0QWm3Q6eL3RIm','Talca','+56 9 3333 3333','Papás');
+ (1,'Admin','admin@agro.cl','$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi','Santiago','+56 9 1111 1111','Trigo'),
+ (2,'Juan Perez','juan@agro.cl','$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi','Rancagua','+56 9 2222 2222','Maíz'),
+ (3,'Maria Lopez','maria@agro.cl','$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi','Talca','+56 9 3333 3333','Papás');
 
 -- roles
 INSERT INTO USER_ROLES(user_id, role_id) VALUES (1, 2);
