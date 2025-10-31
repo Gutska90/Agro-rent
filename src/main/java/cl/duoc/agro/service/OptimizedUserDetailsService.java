@@ -50,8 +50,12 @@ public class OptimizedUserDetailsService implements UserDetailsService {
 
                 // Obtener datos del usuario
                 String dbUsername = rs.getString("username");
+                String dbEmail = rs.getString("email");
                 String dbPassword = rs.getString("password");
                 boolean enabled = rs.getBoolean("enabled");
+                
+                // Usar username si existe, sino usar email
+                String principal = (dbUsername != null && !dbUsername.isEmpty()) ? dbUsername : dbEmail;
                 
                 // Recopilar todos los roles
                 Set<SimpleGrantedAuthority> authorities = new HashSet<>();
@@ -62,7 +66,12 @@ public class OptimizedUserDetailsService implements UserDetailsService {
                     }
                 } while (rs.next());
                 
-                return new User(dbUsername, dbPassword, enabled, true, true, true, authorities);
+                // Si no tiene roles, asignar ROLE_USER por defecto
+                if (authorities.isEmpty()) {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                }
+                
+                return new User(principal, dbPassword, enabled, true, true, true, authorities);
             }
             
         } catch (Exception e) {

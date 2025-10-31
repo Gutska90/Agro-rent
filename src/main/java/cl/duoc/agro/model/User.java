@@ -9,10 +9,14 @@ public class User {
     private Long id;
     @Column(nullable=false)
     private String name;
+    @Column(unique = true, length = 50)
+    private String username;
     @Column(unique = true, nullable=false)
     private String email;
     @Column(nullable=false)
     private String password;
+    @Column(nullable = false)
+    private Boolean enabled = true;
     private String address;
     private String phone;
     private String crops;
@@ -26,11 +30,13 @@ public class User {
     // Constructors
     public User() {}
     
-    public User(Long id, String name, String email, String password, String address, String phone, String crops, Set<Role> roles) {
+    public User(Long id, String name, String username, String email, String password, Boolean enabled, String address, String phone, String crops, Set<Role> roles) {
         this.id = id;
         this.name = name;
+        this.username = username;
         this.email = email;
         this.password = password;
+        this.enabled = enabled != null ? enabled : true;
         this.address = address;
         this.phone = phone;
         this.crops = crops;
@@ -49,6 +55,12 @@ public class User {
     
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public Boolean getEnabled() { return enabled; }
+    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
     
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
@@ -70,8 +82,10 @@ public class User {
     public static class UserBuilder {
         private Long id;
         private String name;
+        private String username;
         private String email;
         private String password;
+        private Boolean enabled = true;
         private String address;
         private String phone;
         private String crops;
@@ -79,12 +93,14 @@ public class User {
         
         public UserBuilder id(Long id) { this.id = id; return this; }
         public UserBuilder name(String name) { this.name = name; return this; }
+        public UserBuilder username(String username) { this.username = username; return this; }
         public UserBuilder email(String email) { this.email = email; return this; }
         public UserBuilder password(String password) { this.password = password; return this; }
+        public UserBuilder enabled(Boolean enabled) { this.enabled = enabled; return this; }
         public UserBuilder address(String address) { this.address = address; return this; }
         public UserBuilder phone(String phone) { this.phone = phone; return this; }
         public UserBuilder crops(String crops) { this.crops = crops; return this; }
         public UserBuilder roles(Set<Role> roles) { this.roles = roles; return this; }
-        public User build() { return new User(id, name, email, password, address, phone, crops, roles); }
+        public User build() { return new User(id, name, username, email, password, enabled, address, phone, crops, roles); }
     }
 }

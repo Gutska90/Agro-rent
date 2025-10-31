@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 🌾 AgroRent - Script de Instalación Automática
-# Este script instala y configura AgroRent automáticamente
+# 🍳 Recetas del Mundo - Script de Instalación Automática
+# Este script instala y configura la aplicación automáticamente
 
 set -e  # Salir si hay algún error
 
@@ -27,7 +27,8 @@ print_error() {
 
 print_header() {
     echo -e "${BLUE}================================${NC}"
-    echo -e "${BLUE}  🌾 AgroRent - Instalación     ${NC}"
+    echo -e "${BLUE}  🍳 Recetas del Mundo         ${NC}"
+    echo -e "${BLUE}     Instalación Automática    ${NC}"
     echo -e "${BLUE}================================${NC}"
 }
 
@@ -172,16 +173,106 @@ compile_project() {
     fi
 }
 
+# Función para verificar MySQL
+check_mysql() {
+    print_message "Verificando MySQL..."
+    
+    if command_exists mysql; then
+        print_message "✅ MySQL encontrado"
+        
+        # Verificar si MySQL está ejecutándose
+        if mysqladmin ping -h localhost -u root --silent 2>/dev/null || \
+           mysqladmin ping -h localhost -u agrouser -pagropass --silent 2>/dev/null; then
+            print_message "✅ MySQL está ejecutándose"
+            return 0
+        else
+            print_warning "⚠️  MySQL no está ejecutándose. Intentando iniciar..."
+            # Intentar iniciar MySQL (varía según el sistema)
+            if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                sudo systemctl start mysql 2>/dev/null || sudo service mysql start 2>/dev/null || true
+            elif [[ "$OSTYPE" == "darwin"* ]]; then
+                brew services start mysql 2>/dev/null || true
+            fi
+            sleep 2
+            return 0
+        fi
+    else
+        print_warning "⚠️  MySQL no encontrado. Se intentará instalar..."
+        return 1
+    fi
+}
+
+# Función para instalar MySQL (Ubuntu/Debian)
+install_mysql_ubuntu() {
+    print_message "Instalando MySQL..."
+    sudo apt update
+    sudo apt install -y mysql-server
+    sudo systemctl start mysql
+    sudo systemctl enable mysql
+    print_message "✅ MySQL instalado"
+}
+
+# Función para instalar MySQL (macOS)
+install_mysql_macos() {
+    print_message "Instalando MySQL con Homebrew..."
+    if command_exists brew; then
+        brew install mysql
+        brew services start mysql
+        print_message "✅ MySQL instalado"
+    else
+        print_error "❌ Homebrew no encontrado"
+        return 1
+    fi
+}
+
+# Función para configurar base de datos
+setup_database() {
+    print_message "Configurando base de datos MySQL..."
+    
+    # Intentar crear base de datos y usuario
+    mysql -u root -p${MYSQL_ROOT_PASSWORD:-root} << EOF 2>/dev/null || \
+    mysql -u root << EOF 2>/dev/null || \
+    mysql -u agrouser -pagropass << EOF 2>/dev/null || true
+    
+CREATE DATABASE IF NOT EXISTS agrorent;
+CREATE USER IF NOT EXISTS 'agrouser'@'localhost' IDENTIFIED BY 'agropass';
+GRANT ALL PRIVILEGES ON agrorent.* TO 'agrouser'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
+    # Ejecutar scripts SQL
+    if [ -f "src/main/resources/schema.sql" ]; then
+        print_message "Ejecutando schema.sql..."
+        mysql -u agrouser -pagropass agrorent < src/main/resources/schema.sql 2>/dev/null || \
+        mysql -u root -p${MYSQL_ROOT_PASSWORD:-root} agrorent < src/main/resources/schema.sql 2>/dev/null || \
+        mysql -u root agrorent < src/main/resources/schema.sql 2>/dev/null || true
+    fi
+    
+    if [ -f "src/main/resources/data.sql" ]; then
+        print_message "Ejecutando data.sql..."
+        mysql -u agrouser -pagropass agrorent < src/main/resources/data.sql 2>/dev/null || \
+        mysql -u root -p${MYSQL_ROOT_PASSWORD:-root} agrorent < src/main/resources/data.sql 2>/dev/null || \
+        mysql -u root agrorent < src/main/resources/data.sql 2>/dev/null || true
+    fi
+    
+    print_message "✅ Base de datos configurada"
+}
+
 # Función para ejecutar el proyecto
 run_project() {
-    print_message "Iniciando AgroRent..."
-    print_message "La aplicación estará disponible en: http://localhost:8080"
-    print_message "Context path: http://localhost:8080/recetas"
+    print_message "Iniciando aplicación..."
+    print_message "La aplicación estará disponible en: http://localhost:8080/recetas"
     print_message ""
     print_message "Cuentas de prueba:"
-    print_message "- Admin: admin@agro.cl / 123456"
-    print_message "- Usuario: juan@agro.cl / 123456"
-    print_message "- Usuario: maria@agro.cl / 123456"
+    print_message "- Admin: admin / admin"
+    print_message "- Usuario: juan / juan"
+    print_message "- Usuario: maria / maria"
+    print_message ""
+    print_message "APIs disponibles:"
+    print_message "- POST /api/auth/login - Login (retorna JWT)"
+    print_message "- GET /api/recipes/home - Recetas recientes y populares"
+    print_message "- GET /api/recipes/search - Búsqueda de recetas"
+    print_message "- GET /api/recipes/{id} - Detalles (requiere JWT)"
     print_message ""
     print_message "Presiona Ctrl+C para detener la aplicación"
     print_message ""
@@ -213,11 +304,41 @@ main() {
         fi
     fi
     
+    # Verificar y configurar MySQL
+    OS=$(detect_os)
+    if ! check_mysql; then
+        print_warning "MySQL no encontrado. ¿Instalarlo automáticamente? (y/n)"
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            case $OS in
+                "ubuntu")
+                    install_mysql_ubuntu
+                    ;;
+                "macos")
+                    install_mysql_macos
+                    ;;
+                *)
+                    print_error "❌ No se puede instalar MySQL automáticamente en este sistema"
+                    print_message "Por favor, instala MySQL manualmente y ejecuta este script nuevamente"
+                    exit 1
+                    ;;
+            esac
+        else
+            print_warning "⚠️  MySQL no configurado. Asegúrate de tener MySQL instalado y ejecutándose."
+            print_message "Cuando MySQL esté listo, ejecuta manualmente:"
+            print_message "  mysql -u root -p < src/main/resources/schema.sql"
+            print_message "  mysql -u root -p < src/main/resources/data.sql"
+        fi
+    else
+        # Configurar base de datos
+        setup_database
+    fi
+    
     # Compilar proyecto
     compile_project
     
     # Preguntar si ejecutar
-    print_message "¿Deseas ejecutar AgroRent ahora? (y/n)"
+    print_message "¿Deseas ejecutar la aplicación ahora? (y/n)"
     read -r response
     if [[ "$response" =~ ^[Yy]$ ]]; then
         run_project

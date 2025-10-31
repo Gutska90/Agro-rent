@@ -2,93 +2,125 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>AgroRent - Inicio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recetas - Inicio</title>
   <link rel="stylesheet" th:href="@{/css/main.css}" />
 </head>
 <body>
 <header>
-  <h1>AgroRent</h1>
+  <h1>🍳 Recetas del Mundo</h1>
   <nav>
     <a th:href="@{/}">Inicio</a>
-    <a th:href="@{/machinery}">Buscar Maquinaria</a>
+    <a th:href="@{/recipes/search}">Buscar Recetas</a>
     <a th:href="@{/login}">Ingresar</a>
     <a th:href="@{/register}">Registrarse</a>
   </nav>
 </header>
 <main>
-  <section class="news-section">
-    <h2>Noticias y Eventos Agrícolas</h2>
-    <div class="news-grid">
-      <div class="news-item">
-        <h3>Feria Agrícola Regional</h3>
-        <p><strong>Fecha:</strong> 15-17 de Noviembre, 2025</p>
-        <p><strong>Ubicación:</strong> Parque O'Higgins, Santiago</p>
-        <p>Exposición de maquinaria agrícola, semillas y tecnología agrícola.</p>
-      </div>
-      <div class="news-item">
-        <h3>Calendario de Cosechas - Primavera</h3>
-        <p><strong>Trigo:</strong> Octubre - Noviembre</p>
-        <p><strong>Maíz:</strong> Marzo - Abril</p>
-        <p><strong>Papas:</strong> Enero - Febrero</p>
-      </div>
-      <div class="news-item">
-        <h3>Programas Gubernamentales</h3>
-        <p><strong>INDAP:</strong> Apoyo a pequeños agricultores</p>
-        <p><strong>SAG:</strong> Certificaciones fitosanitarias</p>
-        <p><strong>CORFO:</strong> Innovación agrícola</p>
-      </div>
+  <!-- Banner de anuncios comerciales -->
+  <section class="banner-section">
+    <div class="banner">
+      <h2>🎉 Descubre las mejores recetas del mundo</h2>
+      <p>Desde la comodidad de tu hogar, aprende a cocinar platos internacionales</p>
     </div>
   </section>
-  
+
+  <!-- Recetas Recientes -->
   <section class="featured-section">
-    <h2>Maquinaria Destacada</h2>
-    <div class="machinery-grid">
-      <div class="machinery-card">
-        <h3>Tractor John Deere T-100</h3>
-        <p><strong>Ubicación:</strong> Rancagua</p>
-        <p><strong>Precio:</strong> $55.000/día</p>
-        <p><strong>Capacidad:</strong> 120 HP</p>
-        <a th:href="@{/machinery/1}" class="btn-primary">Ver Detalles</a>
-      </div>
-      <div class="machinery-card">
-        <h3>Cosechadora New Holland CX6</h3>
-        <p><strong>Ubicación:</strong> Talca</p>
-        <p><strong>Precio:</strong> $120.000/día</p>
-        <p><strong>Capacidad:</strong> 300 HP</p>
-        <a th:href="@{/machinery/2}" class="btn-primary">Ver Detalles</a>
-      </div>
+    <h2>⭐ Recetas Más Recientes</h2>
+    <div id="recent-recipes" class="recipes-grid">
+      <p>Cargando recetas...</p>
     </div>
   </section>
-  
-  <section class="search-section">
-    <h2>Buscar Maquinaria</h2>
-    <form th:action="@{/machinery/search}" method="get" class="search-form">
-      <div class="form-group">
-        <label for="type">Tipo de Maquinaria:</label>
-        <select id="type" name="type">
-          <option value="">Todos los tipos</option>
-          <option value="Tractor">Tractor</option>
-          <option value="Cosechadora">Cosechadora</option>
-          <option value="Sembradora">Sembradora</option>
-          <option value="Pulverizadora">Pulverizadora</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="location">Ubicación:</label>
-        <input type="text" id="location" name="location" placeholder="Ej: Santiago, Rancagua">
-      </div>
-      <div class="form-group">
-        <label for="minPrice">Precio mínimo:</label>
-        <input type="number" id="minPrice" name="minPrice" placeholder="0">
-      </div>
-      <div class="form-group">
-        <label for="maxPrice">Precio máximo:</label>
-        <input type="number" id="maxPrice" name="maxPrice" placeholder="200000">
-      </div>
-      <button type="submit" class="btn-primary">Buscar</button>
-    </form>
+
+  <!-- Recetas Populares -->
+  <section class="featured-section">
+    <h2>🔥 Recetas Más Populares</h2>
+    <div id="popular-recipes" class="recipes-grid">
+      <p>Cargando recetas...</p>
+    </div>
+  </section>
+
+  <!-- Acceso rápido a login -->
+  <section class="login-prompt">
+    <h2>👤 ¿Eres miembro?</h2>
+    <p>Inicia sesión para ver los detalles completos de las recetas, incluyendo ingredientes, instrucciones y fotografías.</p>
+    <a th:href="@{/login}" class="btn-primary">Iniciar Sesión</a>
   </section>
 </main>
-<footer>© 2025 AgroRent</footer>
+<footer>© 2025 Recetas del Mundo</footer>
+
+<script>
+  // Cargar recetas desde la API
+  async function loadHomeRecipes() {
+    try {
+      const response = await fetch('/recetas/api/recipes/home');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Verificar si hay error en la respuesta
+      if (data.error) {
+        console.error('Error de la API:', data.error);
+        document.getElementById('recent-recipes').innerHTML = `<p class="error-message">Error: ${data.error}</p>`;
+        document.getElementById('popular-recipes').innerHTML = `<p class="error-message">Error: ${data.error}</p>`;
+        return;
+      }
+      
+      // Mostrar recetas recientes
+      displayRecipes(data.recent || [], 'recent-recipes', false);
+      
+      // Mostrar recetas populares
+      displayRecipes(data.popular || [], 'popular-recipes', false);
+    } catch (error) {
+      console.error('Error cargando recetas:', error);
+      document.getElementById('recent-recipes').innerHTML = '<p class="error-message">Error al cargar recetas. Por favor, intenta más tarde.</p>';
+      document.getElementById('popular-recipes').innerHTML = '<p class="error-message">Error al cargar recetas. Por favor, intenta más tarde.</p>';
+    }
+  }
+
+  function displayRecipes(recipes, containerId, showFullDetails) {
+    const container = document.getElementById(containerId);
+    
+    if (!recipes || recipes.length === 0) {
+      container.innerHTML = '<p>No hay recetas disponibles</p>';
+      return;
+    }
+
+    container.innerHTML = recipes.map(recipe => `
+      <div class="recipe-card">
+        ${recipe.imageUrl ? `<img src="${recipe.imageUrl}" alt="${recipe.name}" onerror="this.style.display='none'">` : ''}
+        <h3>${recipe.name}</h3>
+        <p><strong>Tipo de Cocina:</strong> ${recipe.cuisineType || 'N/A'}</p>
+        <p><strong>País:</strong> ${recipe.countryOrigin || 'N/A'}</p>
+        <p><strong>Dificultad:</strong> ${recipe.difficulty || 'N/A'}</p>
+        <p><strong>Tiempo:</strong> ${recipe.cookingTime || 'N/A'}</p>
+        ${showFullDetails ? `
+          <p><strong>Ingredientes:</strong> ${recipe.ingredients || 'N/A'}</p>
+          <p><strong>Instrucciones:</strong> ${recipe.instructions || 'N/A'}</p>
+        ` : ''}
+        <button class="btn-primary" onclick="viewRecipe(${recipe.id})">Ver Detalles</button>
+      </div>
+    `).join('');
+  }
+
+  function viewRecipe(id) {
+    const token = localStorage.getItem('jwt_token');
+    if (token) {
+      // Usuario autenticado - ver detalles completos
+      window.location.href = `/recetas/recipes/${id}`;
+    } else {
+      // No autenticado - redirigir a login
+      alert('Debes iniciar sesión para ver los detalles completos de la receta');
+      window.location.href = '/recetas/login';
+    }
+  }
+
+  // Cargar recetas al cargar la página
+  loadHomeRecipes();
+</script>
 </body>
 </html>

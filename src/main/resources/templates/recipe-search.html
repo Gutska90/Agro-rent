@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscar Recetas - Recetas del Mundo</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+<header>
+  <h1>🍳 Recetas del Mundo</h1>
+  <nav>
+    <a th:href="@{/}">Inicio</a>
+    <a th:href="@{/recipes/search}">Buscar Recetas</a>
+    <a th:href="@{/login}">Ingresar</a>
+    <a th:href="@{/register}">Registrarse</a>
+  </nav>
+</header>
+<main>
+  <section class="search-section">
+    <h2>🔍 Buscar Recetas</h2>
+    <form id="search-form" class="search-form">
+      <div class="form-group">
+        <label for="name">Nombre de la Receta:</label>
+        <input type="text" id="name" name="name" placeholder="Ej: Pasta Carbonara">
+      </div>
+      <div class="form-group">
+        <label for="cuisineType">Tipo de Cocina:</label>
+        <select id="cuisineType" name="cuisineType">
+          <option value="">Todos los tipos</option>
+          <option value="Italiana">Italiana</option>
+          <option value="Española">Española</option>
+          <option value="Japonesa">Japonesa</option>
+          <option value="Mexicana">Mexicana</option>
+          <option value="Francesa">Francesa</option>
+          <option value="Tailandesa">Tailandesa</option>
+          <option value="Peruana">Peruana</option>
+          <option value="Americana">Americana</option>
+          <option value="Brasileña">Brasileña</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="countryOrigin">País de Origen:</label>
+        <input type="text" id="countryOrigin" name="countryOrigin" placeholder="Ej: Italia, España, Japón">
+      </div>
+      <div class="form-group">
+        <label for="difficulty">Dificultad:</label>
+        <select id="difficulty" name="difficulty">
+          <option value="">Todas las dificultades</option>
+          <option value="Fácil">Fácil</option>
+          <option value="Media">Media</option>
+          <option value="Difícil">Difícil</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="ingredient">Ingrediente:</label>
+        <input type="text" id="ingredient" name="ingredient" placeholder="Ej: Pollo, Pasta, Arroz">
+      </div>
+      <button type="submit" class="btn-primary">Buscar Recetas</button>
+      <button type="button" class="btn-secondary" onclick="clearSearch()">Limpiar</button>
+    </form>
+  </section>
+
+  <section class="results-section">
+    <h2>📋 Resultados de la Búsqueda</h2>
+    <div id="search-results" class="recipes-grid">
+      <p>Ingresa criterios de búsqueda para encontrar recetas</p>
+    </div>
+  </section>
+</main>
+<footer>© 2025 Recetas del Mundo</footer>
+
+<script>
+  document.getElementById('search-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await performSearch();
+  });
+
+  async function performSearch() {
+    const name = document.getElementById('name').value;
+    const cuisineType = document.getElementById('cuisineType').value;
+    const countryOrigin = document.getElementById('countryOrigin').value;
+    const difficulty = document.getElementById('difficulty').value;
+    const ingredient = document.getElementById('ingredient').value;
+
+    // Construir query string
+    const params = new URLSearchParams();
+    if (name) params.append('name', name);
+    if (cuisineType) params.append('cuisineType', cuisineType);
+    if (countryOrigin) params.append('countryOrigin', countryOrigin);
+    if (difficulty) params.append('difficulty', difficulty);
+    if (ingredient) params.append('ingredient', ingredient);
+
+    try {
+      const response = await fetch(`/recetas/api/recipes/search?${params.toString()}`);
+      const recipes = await response.json();
+      
+      displaySearchResults(recipes);
+    } catch (error) {
+      console.error('Error en búsqueda:', error);
+      document.getElementById('search-results').innerHTML = '<p>Error al buscar recetas</p>';
+    }
+  }
+
+  function displaySearchResults(recipes) {
+    const container = document.getElementById('search-results');
+    
+    if (!recipes || recipes.length === 0) {
+      container.innerHTML = '<p>No se encontraron recetas con los criterios especificados</p>';
+      return;
+    }
+
+    container.innerHTML = recipes.map(recipe => `
+      <div class="recipe-card">
+        ${recipe.imageUrl ? `<img src="${recipe.imageUrl}" alt="${recipe.name}" onerror="this.style.display='none'">` : ''}
+        <h3>${recipe.name}</h3>
+        <p><strong>Tipo de Cocina:</strong> ${recipe.cuisineType || 'N/A'}</p>
+        <p><strong>País:</strong> ${recipe.countryOrigin || 'N/A'}</p>
+        <p><strong>Dificultad:</strong> ${recipe.difficulty || 'N/A'}</p>
+        <p><strong>Tiempo:</strong> ${recipe.cookingTime || 'N/A'}</p>
+        <p><strong>Vistas:</strong> ${recipe.viewCount || 0}</p>
+        <button class="btn-primary" onclick="viewRecipe(${recipe.id})">Ver Detalles Completos</button>
+      </div>
+    `).join('');
+  }
+
+  function viewRecipe(id) {
+    const token = localStorage.getItem('jwt_token');
+    if (token) {
+      window.location.href = `/recetas/recipes/${id}`;
+    } else {
+      alert('Debes iniciar sesión para ver los detalles completos de la receta');
+      window.location.href = '/recetas/login';
+    }
+  }
+
+  function clearSearch() {
+    document.getElementById('search-form').reset();
+    document.getElementById('search-results').innerHTML = '<p>Ingresa criterios de búsqueda para encontrar recetas</p>';
+  }
+
+  // Si hay parámetros en la URL, realizar búsqueda automática
+  window.addEventListener('load', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.toString()) {
+      document.getElementById('name').value = urlParams.get('name') || '';
+      document.getElementById('cuisineType').value = urlParams.get('cuisineType') || '';
+      document.getElementById('countryOrigin').value = urlParams.get('countryOrigin') || '';
+      document.getElementById('difficulty').value = urlParams.get('difficulty') || '';
+      document.getElementById('ingredient').value = urlParams.get('ingredient') || '';
+      performSearch();
+    }
+  });
+</script>
+</body>
+</html>

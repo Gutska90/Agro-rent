@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Receta - Recetas del Mundo</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+<header>
+  <h1>🍳 Recetas del Mundo</h1>
+  <nav>
+    <a th:href="@{/}">Inicio</a>
+    <a th:href="@{/recipes/search}">Buscar Recetas</a>
+    <a th:href="@{/logout}">Cerrar Sesión</a>
+  </nav>
+</header>
+<main>
+  <div id="recipe-detail-container">
+    <p>Cargando detalles de la receta...</p>
+  </div>
+</main>
+<footer>© 2025 Recetas del Mundo</footer>
+
+<script>
+  async function loadRecipeDetail() {
+    const recipeId = window.location.pathname.split('/').pop();
+    const token = localStorage.getItem('jwt_token');
+
+    if (!token) {
+      alert('Debes iniciar sesión para ver los detalles completos');
+      window.location.href = '/recetas/login';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/recetas/api/recipes/${recipeId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        alert('Sesión expirada. Por favor, inicia sesión nuevamente');
+        localStorage.removeItem('jwt_token');
+        window.location.href = '/recetas/login';
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error('Error al cargar la receta');
+      }
+
+      const recipe = await response.json();
+      displayRecipeDetail(recipe);
+    } catch (error) {
+      console.error('Error cargando receta:', error);
+      document.getElementById('recipe-detail-container').innerHTML = 
+        '<p>Error al cargar la receta. Verifica que hayas iniciado sesión correctamente.</p>';
+    }
+  }
+
+  function displayRecipeDetail(recipe) {
+    const container = document.getElementById('recipe-detail-container');
+    
+    container.innerHTML = `
+      <section class="recipe-detail">
+        <div class="recipe-header">
+          <h2>${recipe.name}</h2>
+          <div class="recipe-meta">
+            <span class="badge">${recipe.cuisineType || 'N/A'}</span>
+            <span class="badge">${recipe.countryOrigin || 'N/A'}</span>
+            <span class="badge difficulty-${recipe.difficulty?.toLowerCase() || 'media'}">${recipe.difficulty || 'N/A'}</span>
+          </div>
+        </div>
+
+        ${recipe.imageUrl ? `
+          <div class="recipe-image">
+            <img src="${recipe.imageUrl}" alt="${recipe.name}" onerror="this.style.display='none'">
+          </div>
+        ` : ''}
+
+        <div class="recipe-info-grid">
+          <div class="info-card">
+            <h3>⏱️ Tiempo de Cocción</h3>
+            <p>${recipe.cookingTime || 'N/A'}</p>
+          </div>
+          <div class="info-card">
+            <h3>📊 Dificultad</h3>
+            <p>${recipe.difficulty || 'N/A'}</p>
+          </div>
+          <div class="info-card">
+            <h3>👁️ Vistas</h3>
+            <p>${recipe.viewCount || 0}</p>
+          </div>
+          <div class="info-card">
+            <h3>👨‍🍳 Autor</h3>
+            <p>${recipe.authorName || 'Anónimo'}</p>
+          </div>
+        </div>
+
+        <div class="recipe-section">
+          <h3>🥘 Ingredientes</h3>
+          <div class="ingredients-list">
+            ${(recipe.ingredients || '').split(',').map(ing => `
+              <span class="ingredient-tag">${ing.trim()}</span>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="recipe-section">
+          <h3>📝 Instrucciones de Preparación</h3>
+          <div class="instructions">
+            ${(recipe.instructions || 'No hay instrucciones disponibles').replace(/\n/g, '<br>')}
+          </div>
+        </div>
+
+        <div class="recipe-actions">
+          <a href="/recetas/" class="btn-secondary">Volver al Inicio</a>
+          <a href="/recetas/recipes/search" class="btn-primary">Buscar Más Recetas</a>
+        </div>
+      </section>
+    `;
+  }
+
+  // Cargar receta al cargar la página
+  loadRecipeDetail();
+</script>
+</body>
+</html>

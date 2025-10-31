@@ -2,15 +2,16 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Iniciar Sesión - AgroRent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión - Recetas del Mundo</title>
   <link rel="stylesheet" th:href="@{/css/main.css}" />
 </head>
 <body>
 <header>
-  <h1>AgroRent</h1>
+  <h1>🍳 Recetas del Mundo</h1>
   <nav>
     <a th:href="@{/}">Inicio</a>
-    <a th:href="@{/machinery}">Buscar Maquinaria</a>
+    <a th:href="@{/recipes/search}">Buscar Recetas</a>
     <a th:href="@{/login}">Ingresar</a>
     <a th:href="@{/register}">Registrarse</a>
   </nav>
@@ -20,20 +21,25 @@
   <section class="auth-section">
     <div class="auth-container">
       <h2>Iniciar Sesión</h2>
-      <p class="auth-description">Accede a tu cuenta para gestionar tu perfil y publicaciones.</p>
+      <p class="auth-description">Accede a tu cuenta para ver los detalles completos de las recetas.</p>
       
       <div th:if="${param.registered}" class="success-message">
         <p>✓ Registro exitoso. Ya puedes iniciar sesión.</p>
       </div>
       
       <div th:if="${param.error}" class="error-message">
-        <p>✗ Email o contraseña incorrectos. Intenta nuevamente.</p>
+        <p>✗ Usuario o contraseña incorrectos. Intenta nuevamente.</p>
       </div>
       
-      <form method="post" th:action="@{/login}" class="auth-form">
+      <div id="api-error" class="error-message" style="display: none;">
+        <p id="api-error-text"></p>
+      </div>
+      
+      <!-- Login tradicional (form) -->
+      <form method="post" th:action="@{/login}" class="auth-form" id="form-login">
         <div class="form-group">
-          <label for="username">Email</label>
-          <input type="email" id="username" name="username" placeholder="tu@email.com" required>
+          <label for="username">Usuario o Email</label>
+          <input type="text" id="username" name="username" placeholder="usuario o email" required>
         </div>
         
         <div class="form-group">
@@ -43,6 +49,12 @@
         
         <button type="submit" class="btn-primary">Iniciar Sesión</button>
       </form>
+
+      <!-- Login con API (para JWT) -->
+      <div class="api-login-section">
+        <p>O usa el login con API para obtener token JWT:</p>
+        <button type="button" class="btn-secondary" onclick="loginWithAPI()">Login con API (JWT)</button>
+      </div>
       
       <div class="auth-links">
         <p>¿No tienes cuenta? <a th:href="@{/register}">Regístrate aquí</a></p>
@@ -52,19 +64,88 @@
       <div class="demo-accounts">
         <h3>Cuentas de Prueba</h3>
         <div class="demo-account">
-          <strong>Admin:</strong> admin@agro.cl / 123456
+          <strong>Admin:</strong> admin / admin
         </div>
         <div class="demo-account">
-          <strong>Usuario:</strong> juan@agro.cl / 123456
+          <strong>Usuario:</strong> juan / juan
         </div>
         <div class="demo-account">
-          <strong>Usuario:</strong> maria@agro.cl / 123456
+          <strong>Usuario:</strong> maria / maria
         </div>
       </div>
     </div>
   </section>
 </main>
 
-<footer>© 2025 AgroRent</footer>
+<footer>© 2025 Recetas del Mundo</footer>
+
+<script>
+  async function loginWithAPI() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    if (!username || !password) {
+      showApiError('Por favor, completa usuario y contraseña');
+      return;
+    }
+
+    try {
+      const response = await fetch('/recetas/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showApiError(data.message || 'Error de autenticación');
+        return;
+      }
+
+      // Guardar token JWT
+      localStorage.setItem('jwt_token', data.token);
+      localStorage.setItem('username', data.username);
+      localStorage.setItem('user_role', data.role);
+
+      // Redirigir
+      window.location.href = '/recetas/';
+    } catch (error) {
+      console.error('Error en login API:', error);
+      showApiError('Error al conectar con el servidor');
+    }
+  }
+
+  function showApiError(message) {
+    const errorDiv = document.getElementById('api-error');
+    const errorText = document.getElementById('api-error-text');
+    errorText.textContent = '✗ ' + message;
+    errorDiv.style.display = 'block';
+    setTimeout(() => {
+      errorDiv.style.display = 'none';
+    }, 5000);
+  }
+
+  // Si ya hay token, verificar si sigue válido
+  window.addEventListener('load', () => {
+    const token = localStorage.getItem('jwt_token');
+    if (token) {
+      // Verificar token con una petición de prueba
+      fetch('/recetas/api/recipes/home')
+        .then(response => {
+          if (!response.ok && response.status === 401) {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('user_role');
+          }
+        })
+        .catch(() => {
+          // Ignorar errores de red
+        });
+    }
+  });
+</script>
 </body>
 </html>
