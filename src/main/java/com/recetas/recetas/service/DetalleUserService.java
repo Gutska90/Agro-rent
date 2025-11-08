@@ -29,10 +29,12 @@ public class DetalleUserService implements UserDetailsService {
                 .map(role -> new SimpleGrantedAuthority(role.getNombre()))
                 .collect(Collectors.toList());
 
+        boolean enabled = usuario.getEnabled() != null && usuario.getEnabled() == 1;
+
         return new User(
                 usuario.getUsername(),
                 usuario.getPassword(),
-                usuario.getEnabled(),
+                enabled,
                 true,
                 true,
                 true,

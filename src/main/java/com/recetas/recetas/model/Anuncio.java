@@ -8,21 +8,33 @@ import lombok.Data;
 @Data
 public class Anuncio {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "anuncios_seq")
+    @SequenceGenerator(name = "anuncios_seq", sequenceName = "anuncios_seq", allocationSize = 1)
     private Long id;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String empresa;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String titulo;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "descripcion", columnDefinition = "CLOB")
     private String descripcion;
     
+    @Column(name = "imagen_url", length = 500)
     private String imagenUrl;
     
+    @Column(name = "url_destino", length = 500)
     private String urlDestino;
     
-    private Boolean activo = true;
+    @Column(name = "activo", nullable = false)
+    private Integer activo = 1;
+    
+    public boolean isActivo() {
+        return activo != null && activo == 1;
+    }
+    
+    public void setActivoBoolean(boolean activo) {
+        this.activo = activo ? 1 : 0;
+    }
 }

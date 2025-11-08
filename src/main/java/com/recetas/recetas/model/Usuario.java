@@ -9,19 +9,21 @@ import java.util.Set;
 public class Usuario {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usuarios_seq")
+    @SequenceGenerator(name = "usuarios_seq", sequenceName = "usuarios_seq", allocationSize = 1)
     private Long id;
     
-    @Column(unique = true, nullable = false)
+    @Column(name = "username", unique = true, nullable = false, length = 50)
     private String username;
     
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
     
-    @Column(nullable = false)
+    @Column(name = "email", nullable = false, length = 100)
     private String email;
     
-    private Boolean enabled = true;
+    @Column(name = "enabled", nullable = false)
+    private Integer enabled = 1;
     
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -30,4 +32,12 @@ public class Usuario {
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+        public boolean isEnabled() {
+        return enabled != null && enabled == 1;
+    }
+    
+    public void setEnabledBoolean(boolean enabled) {
+        this.enabled = enabled ? 1 : 0;
+    }
 }
