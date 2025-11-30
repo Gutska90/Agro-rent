@@ -1,0 +1,111 @@
+package com.recetas.recetas.repository;
+
+import com.recetas.recetas.model.Receta;
+import com.recetas.recetas.model.Role;
+import com.recetas.recetas.model.Usuario;
+import com.recetas.recetas.model.Valoracion;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@DataJpaTest
+@ActiveProfiles("test")
+class ValoracionRepositoryTest {
+    
+    @Autowired
+    private TestEntityManager entityManager;
+    
+    @Autowired
+    private ValoracionRepository valoracionRepository;
+    
+    
+    private Receta receta;
+    private Usuario usuario;
+    private Valoracion valoracion;
+    
+    @BeforeEach
+    void setUp() {
+        // Crear rol
+        Role role = new Role();
+        role.setNombre("ROLE_USER");
+        entityManager.persistAndFlush(role);
+        
+        // Crear usuario
+        usuario = new Usuario();
+        usuario.setNombreCompleto("Test User");
+        usuario.setUsername("testuser");
+        usuario.setEmail("test@example.com");
+        usuario.setPassword("password");
+        usuario.setEnabledBoolean(true);
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+        usuario.setRoles(roles);
+        entityManager.persistAndFlush(usuario);
+        
+        // Crear receta
+        receta = new Receta();
+        receta.setNombre("Paella");
+        receta.setTipoCocina("Mediterránea");
+        receta.setPaisOrigen("España");
+        receta.setDificultad("Media");
+        receta.setTiempoCoccion(60);
+        receta.setIngredientes("Arroz");
+        receta.setInstrucciones("Cocinar");
+        receta.setFechaCreacion(LocalDateTime.now());
+        entityManager.persistAndFlush(receta);
+        
+        // Crear valoración
+        valoracion = new Valoracion();
+        valoracion.setReceta(receta);
+        valoracion.setUsuario(usuario);
+        valoracion.setPuntuacion(5);
+        valoracion.setFechaCreacion(LocalDateTime.now());
+    }
+    
+    @Test
+    void testSave() {
+        // Act
+        Valoracion guardada = valoracionRepository.save(valoracion);
+        entityManager.flush();
+        
+        // Assert
+        assertNotNull(guardada.getId());
+        assertEquals(5, guardada.getPuntuacion());
+    }
+    
+    @Test
+    void testFindByRecetaIdAndUsuarioId() {
+        // Arrange
+        entityManager.persistAndFlush(valoracion);
+        
+        // Act
+        Optional<Valoracion> resultado = valoracionRepository.findByRecetaIdAndUsuarioId(receta.getId(), usuario.getId());
+        
+        // Assert
+        assertTrue(resultado.isPresent());
+        assertEquals(5, resultado.get().getPuntuacion());
+    }
+    
+    @Test
+    void testContarPorRecetaId() {
+        // Arrange
+        entityManager.persistAndFlush(valoracion);
+        
+        // Act
+        long count = valoracionRepository.contarPorRecetaId(receta.getId());
+        
+        // Assert
+        assertEquals(1L, count);
+    }
+}
+

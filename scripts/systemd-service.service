@@ -1,0 +1,23 @@
+# Servicio systemd para Recetas Spring
+# Copiar a: /etc/systemd/system/recetas.service
+# Habilitar: sudo systemctl enable recetas
+# Iniciar: sudo systemctl start recetas
+# Estado: sudo systemctl status recetas
+
+[Unit]
+Description=Recetas Spring Application
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=recetas
+WorkingDirectory=/opt/recetas
+ExecStart=/usr/bin/java -jar /opt/recetas/target/recetas-0.0.1-SNAPSHOT.jar
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

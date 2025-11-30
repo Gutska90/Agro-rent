@@ -48,4 +48,8 @@ public class RecetaService {
     public List<Receta> obtenerTodasLasRecetas() {
         return recetaRepository.findAll();
     }
+    
+    public Receta guardarReceta(Receta receta) {
+        return recetaRepository.save(receta);
+    }
 }
