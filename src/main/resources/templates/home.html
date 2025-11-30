@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recetas - Inicio</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+<body>
+<header>
+  <h1>🍳 Recetas del Mundo</h1>
+  <nav>
+    <a th:href="@{/}">Inicio</a>
+    <a th:href="@{/recipes/search}">Buscar Recetas</a>
+    <a th:href="@{/login}">Ingresar</a>
+    <a th:href="@{/register}">Registrarse</a>
+  </nav>
+</header>
+<main>
+  <!-- Banner de anuncios comerciales -->
+  <section class="banner-section">
+    <div class="banner">
+      <h2>🎉 Descubre las mejores recetas del mundo</h2>
+      <p>Desde la comodidad de tu hogar, aprende a cocinar platos internacionales</p>
+    </div>
+  </section>
+
+  <!-- Recetas Recientes -->
+  <section class="featured-section">
+    <h2>⭐ Recetas Más Recientes</h2>
+    <div id="recent-recipes" class="recipes-grid">
+      <p>Cargando recetas...</p>
+    </div>
+  </section>
+
+  <!-- Recetas Populares -->
+  <section class="featured-section">
+    <h2>🔥 Recetas Más Populares</h2>
+    <div id="popular-recipes" class="recipes-grid">
+      <p>Cargando recetas...</p>
+    </div>
+  </section>
+
+  <!-- Acceso rápido a login -->
+  <section class="login-prompt">
+    <h2>👤 ¿Eres miembro?</h2>
+    <p>Inicia sesión para ver los detalles completos de las recetas, incluyendo ingredientes, instrucciones y fotografías.</p>
+    <a th:href="@{/login}" class="btn-primary">Iniciar Sesión</a>
+  </section>
+</main>
+<footer>© 2025 Recetas del Mundo</footer>
+
+<script>
+  // Cargar recetas desde la API
+  async function loadHomeRecipes() {
+    try {
+      const response = await fetch('/recetas/api/recipes/home');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Verificar si hay error en la respuesta
+      if (data.error) {
+        console.error('Error de la API:', data.error);
+        document.getElementById('recent-recipes').innerHTML = `<p class="error-message">Error: ${data.error}</p>`;
+        document.getElementById('popular-recipes').innerHTML = `<p class="error-message">Error: ${data.error}</p>`;
+        return;
+      }
+      
+      // Mostrar recetas recientes
+      displayRecipes(data.recent || [], 'recent-recipes', false);
+      
+      // Mostrar recetas populares
+      displayRecipes(data.popular || [], 'popular-recipes', false);
+    } catch (error) {
+      console.error('Error cargando recetas:', error);
+      document.getElementById('recent-recipes').innerHTML = '<p class="error-message">Error al cargar recetas. Por favor, intenta más tarde.</p>';
+      document.getElementById('popular-recipes').innerHTML = '<p class="error-message">Error al cargar recetas. Por favor, intenta más tarde.</p>';
+    }
+  }
+
+  function displayRecipes(recipes, containerId, showFullDetails) {
+    const container = document.getElementById(containerId);
+    
+    if (!recipes || recipes.length === 0) {
+      container.innerHTML = '<p>No hay recetas disponibles</p>';
+      return;
+    }
+
+    container.innerHTML = recipes.map(recipe => `
+      <div class="recipe-card">
+        ${recipe.imageUrl ? `<img src="${recipe.imageUrl}" alt="${recipe.name}" onerror="this.style.display='none'">` : ''}
+        <h3>${recipe.name}</h3>
+        <p><strong>Tipo de Cocina:</strong> ${recipe.cuisineType || 'N/A'}</p>
+        <p><strong>País:</strong> ${recipe.countryOrigin || 'N/A'}</p>
+        <p><strong>Dificultad:</strong> ${recipe.difficulty || 'N/A'}</p>
+        <p><strong>Tiempo:</strong> ${recipe.cookingTime || 'N/A'}</p>
+        ${showFullDetails ? `
+          <p><strong>Ingredientes:</strong> ${recipe.ingredients || 'N/A'}</p>
+          <p><strong>Instrucciones:</strong> ${recipe.instructions || 'N/A'}</p>
+        ` : ''}
+        <button class="btn-primary" onclick="viewRecipe(${recipe.id})">Ver Detalles</button>
+      </div>
+    `).join('');
+  }
+
+  function viewRecipe(id) {
+    const token = localStorage.getItem('jwt_token');
+    if (token) {
+      // Usuario autenticado - ver detalles completos
+      window.location.href = `/recetas/recipes/${id}`;
+    } else {
+      // No autenticado - redirigir a login
+      alert('Debes iniciar sesión para ver los detalles completos de la receta');
+      window.location.href = '/recetas/login';
+    }
+  }
+
+  // Cargar recetas al cargar la página
+  loadHomeRecipes();
+</script>
+</body>
+</html>
